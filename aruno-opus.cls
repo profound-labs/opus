@@ -11,13 +11,11 @@
 % ==============
 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesClass{aruno-opus}[2013/03/19 v0.01 A document class for books with a somber content.]
+\ProvidesClass{aruno-opus}[2013/04/18 v0.2 A document class for books with a somber content.]
 
 % ========================
 % Preliminary Declarations
 % ========================
-
-\RequirePackage[british]{babel}
 
 % =======
 % Options
@@ -30,14 +28,8 @@
   /OPUS/.cd,
   pagePreset/.default=largepage,
   pagePreset/.store in=\OPUS@pagePreset,
-  mainFontFamily/.default=TeX Gyre Pagella,
-  mainFontFamily/.store in=\OPUS@mainFontFamily,
-  italicFontFamily/.default=TeX Gyre Pagella Italic,
-  italicFontFamily/.store in=\OPUS@italicFontFamily,
-  boldFontFamily/.default=TeX Gyre Pagella Bold,
-  boldFontFamily/.store in=\OPUS@boldFontFamily,
-  capsFontFamily/.default=TeX Gyre Pagella,
-  capsFontFamily/.store in=\OPUS@capsFontFamily,
+  babelLanguage/.default=british,
+  babelLanguage/.store in=\OPUS@babelLanguage,
 }
 
 % Pass all unknown options to memoir
@@ -53,6 +45,8 @@
 % ======================
 
 \LoadClass[11pt,twoside]{memoir}
+
+\RequirePackage[\OPUS@babelLanguage]{babel}
 
 \RequirePackage{nag}
 \RequirePackage{xparse}
@@ -73,6 +67,11 @@
 
 \definecolor{textbody}{gray}{0.15}
 \definecolor{footnoterule}{gray}{0.5}
+\definecolor{chapternum}{gray}{0.8}
+\definecolor{chaptertitle}{gray}{0.3}
+\definecolor{chapterauthor}{gray}{0.3}
+\definecolor{chapternote}{gray}{0.3}
+\definecolor{section}{gray}{0.3}
 
 % === Load fonts ===
 
@@ -90,12 +89,55 @@
 % http://tex.stackexchange.com/questions/20580/how-to-enable-ligatures-for-emdash-endash-in-luatex
 
 \setmainfont[
-  SmallCapsFont = Arno Pro,
+  SmallCapsFont = Crimson Roman,
   SmallCapsFeatures= { Ligatures = TeX, Letters = SmallCaps }
 ]{Gentium}
 
-\newfontfamily\headFont{Arno Pro}
-\newfontfamily\footFont{Gentium}
+\newfontfamily\crimsonRomanFont[
+  BoldFont = Crimson Semibold,
+  ItalicFont = Crimson Italic,
+]{Crimson Roman}
+\newfontfamily\gentiumFont{Gentium}
+
+% header and footer
+
+\newfontfamily\footFont[Renderer = Basic]{Shaker Pali}
+
+\newcommand{\footSize}
+  {\@setfontsize\footSize{9}{9}}
+
+% chapter
+
+\newfontfamily\chapterNameFont{Crimson Roman}
+\newfontfamily\chapterTitleFont{Crimson Roman}
+\newfontfamily\chapterNumberFont{Crimson Roman}
+\newfontfamily\chapterAuthorFont{Crimson Roman}
+\newfontfamily\chapterNoteFont[
+  BoldFont = Crimson Semibold,
+  ItalicFont = Crimson Italic,
+]{Crimson Roman}
+
+\newcommand{\chapterNameSize}
+  {\@setfontsize\chapterNameSize{22}{24}}
+\newcommand{\chapterNumberSize}
+  {\@setfontsize\chapterNumberSize{22}{24}}
+\newcommand{\chapterTitleSize}
+  {\@setfontsize\chapterTitleSize{13}{16.5}}
+\newcommand{\chapterAuthorSize}
+  {\@setfontsize\chapterAuthorSize{12}{14}}
+\newcommand{\chapterNoteSize}
+  {\@setfontsize\chapterNoteSize{10}{13}}
+
+% section
+
+\newfontfamily\sectionFont[
+  BoldFont = Crimson Semibold,
+  ItalicFont = Crimson Italic,
+]{Crimson Roman}
+
+\newcommand{\sectionSize}
+  {\@setfontsize\sectionSize{13}{15}}
+
 
 % === Page geometry and layout ===
 
@@ -146,7 +188,6 @@
   \setlength{\vindent}{\vgap}
   \setlength{\vleftmargin}{2em}
 
-  % TODO: try deeper parindent?
   \setlength{\parindent}{20pt}
   %\setlength{\parindent}{17pt}
 
@@ -211,19 +252,47 @@
 %% WARNING: there will be more underfull lines, and some very streched
 %% lines. Check the log file for underfull warnings.
 
-\lefthyphenmin=3
-\righthyphenmin=3
+% There are reset every time the language is reset.
+%\lefthyphenmin=3
+%\righthyphenmin=3
 
-\hyphenpenalty=600
+% Use this instead:
+\renewcommand\britishhyphenmins{{3}{3}}
+
+\hyphenpenalty=700
 \exhyphenpenalty=50
 \doublehyphendemerits=900
 \brokenpenalty=990
 
 % === soul settings ===
 
+\sodef\soTocChapter{}{.1em}{.5em plus.1em}{.1em plus.1em minus.1em}
+\sodef\soSection{}{.07em}{.4em plus.1em}{.1em plus.1em minus.1em}
+\sodef\soChapter{}{.1em}{.5em plus.1em}{.1em plus.1em minus.1em}
+
 % === New, custom commands and environments ===
 
+\newcommand\dividerRule{%
+{\centering\bigskip
+{\color[gray]{0.6}\rule{0.6\linewidth}{0.2pt}}
+
+\bigskip}%
+}
+
 % === Renewing package macros ===
+
+\renewenvironment{quote}%
+{\small
+\list{}{\rightmargin\leftmargin}%
+\item[]}%
+{\endlist}
+
+\newcommand\quoteref[1]{%
+\par
+{\footnotesize #1}
+\par
+}
+
 
 \renewcommand\footnoterule{%
   \vspace*{\baselineskip}%
@@ -235,14 +304,19 @@
 
 \nouppercaseheads
 
+% define page styles with names about "what it does"
+
 \makepagestyle{normalpage}
 \makeevenhead{normalpage}{}{\textit{\rightmark}}{}
 \makeevenfoot{normalpage}{}{\thepage}{}
 \makeoddhead{normalpage}{}{\textit{\leftmark}}{}
 \makeoddfoot{normalpage}{}{\thepage}{}
 
-\pagestyle{normalpage}
+% alias the pagestyles into semantic names, "where it is used"
 
+%\aliaspagestyle{normalpage}{bottomcorner}
+
+\pagestyle{normalpage}
 
 % === TOC settings ===
 
@@ -252,10 +326,94 @@
 
 \setsecnumdepth{chapter}
 
+% define chapter styles with "fantasy" names
+
+\newif\ifchapterauthor
+\chapterauthorfalse
+
+\newcommand*{\chapterAuthor}{}
+\newcommand*{\setChapterAuthor}[1]{%
+  \chapterauthortrue%
+  \renewcommand*\chapterAuthor{#1}%
+}
+
+\newcommand\chapterAuthorFmt[1]{%
+  \chapterAuthorFont\chapterAuthorSize\color{chapterauthor}%
+  #1%
+}
+
+\newif\ifchapternote
+\chapternotefalse
+
+\newcommand\chapterNoteFmt[1]{%
+  \chapterNoteFont\chapterNoteSize\color{chapternote}%
+  \itshape #1%
+}
+
+\newcommand*{\chapterNote}{}
+\newcommand*{\setChapterNote}[1]{%
+  \chapternotetrue%
+  \renewcommand*\chapterNote{#1}%
+}
+
+\makechapterstyle{lowtitle}{
+  \chapterstyle{default}
+  \setlength{\beforechapskip}{30mm}
+  \renewcommand\printchaptername{}
+  \renewcommand\chapternamenum{}
+  \renewcommand\chapnumfont{\chapterNumberFont\chapterNumberSize}
+  \renewcommand\printchapternum{%
+    \chapnumfont\color{chapternum}%
+    \hspace*{17pt}\thechapter%
+  }
+  \setlength{\midchapskip}{2\onelineskip}
+  \renewcommand\afterchapternum{\par\nobreak\vskip \midchapskip}
+  \renewcommand\printchapternonum{}
+  \renewcommand\chaptitlefont{\chapterTitleFont\chapterTitleSize}
+  \renewcommand*\printchaptertitle[1]{%
+    \raggedright\hspace*{17pt}\parbox{\linewidth - 17pt}{%
+      \raggedright\chaptitlefont\color{chaptertitle}%
+      \MakeUppercase{\soChapter{##1}}%
+      \ifchapterauthor%
+        \vskip 0.5\onelineskip%
+        \chapterAuthorFmt{\chapterAuthor}%
+        \global\chapterauthorfalse%
+      \fi%
+      \ifchapternote%
+        \vskip 0.5\onelineskip%
+        \chapterNoteFmt{\chapterNote}%
+        \global\chapternotefalse%
+      \fi%
+    }%
+  }
+  \setlength{\afterchapskip}{2.5\onelineskip}
+  \renewcommand\afterchaptertitle{\par\nobreak\vskip \afterchapskip}%
+}
+
+% alias the "fantasy" names into semantic chapter names
+
+\chapterstyle{lowtitle}
+
 % === Section styles ===
+
+\raggedbottomsection
 
 \setbeforesecskip{-3.5ex \@plus -1ex \@minus -.2ex}
 \setaftersecskip{2.3ex \@plus .2ex}
+
+\newcommand\sectionFmt[1]{%
+  \sectionFont\sectionSize\color{section}%
+  \memRTLraggedright%
+  \itshape #1%
+}
+\setsecheadstyle{\sectionFmt}
+
+\setsubsecheadstyle{%
+  \sectionFont\large\itshape\memRTLraggedright%
+}
+\setsubsubsecheadstyle{%
+  \sectionFont\normalsize\itshape\memRTLraggedright%
+}
 
 % === Packages to be loaded LAST ===
 
